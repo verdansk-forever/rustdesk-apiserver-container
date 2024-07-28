@@ -1,0 +1,68 @@
+diff --git a/app/controllers/base.go b/app/controllers/base.go
+index 65af0e1..4e74ff8 100644
+--- a/app/controllers/base.go
++++ b/app/controllers/base.go
+@@ -2,7 +2,6 @@ package controllers
+ 
+ import (
+ 	"github.com/beego/beego/v2/client/orm"
+-	"log"
+ 	"rustdesk-api-server/utils/beegoHelper"
+ 
+ 	//beego "github.com/beego/beego/v2/adapter"
+@@ -23,7 +22,7 @@ func (ctl *BaseController) Prepare() {
+ 	controllerName, actionName := ctl.GetControllerAndAction()
+ 	ctl.controllerName = strings.ToLower(controllerName[0 : len(controllerName)-10])
+ 	ctl.actionName = strings.ToLower(actionName)
+-	log.Println("请求接口", ctl.Ctx.Input.URL(), ctl.Ctx.Input.Method(), string(ctl.Ctx.Input.RequestBody))
++	//log.Println("请求接口", ctl.Ctx.Input.URL(), ctl.Ctx.Input.Method(), string(ctl.Ctx.Input.RequestBody))
+ 	// 获取token
+ 	token := ctl.Ctx.Input.Header("Authorization")
+ 	if ctl.controllerName != "login" && ctl.controllerName != "index" && !(ctl.controllerName == "user" && (ctl.actionName == "reg" || ctl.actionName == "setpwd")) {
+diff --git a/constant/constant.go b/constant/constant.go
+index b509efb..8909282 100644
+--- a/constant/constant.go
++++ b/constant/constant.go
+@@ -1,6 +1,7 @@
+ package constant
+ 
+ const (
++	AppConfEnv  = "BZ_APP_CONF" // 配置文件环境变量
+ 	ConfigEnv  = "BZ_CONFIG" // 配置文件环境变量
+ 	ConfigFile = "conf/config.yml"
+ )
+diff --git a/main.go b/main.go
+index 73ac15d..3052dc1 100644
+--- a/main.go
++++ b/main.go
+@@ -5,9 +5,11 @@ import (
+ 	"github.com/beego/beego/v2/core/config"
+ 	"github.com/beego/beego/v2/server/web"
+ 	"log"
++	"os"
+ 	_ "rustdesk-api-server/boot/config"
+ 	_ "rustdesk-api-server/boot/mysql"
+ 	_ "rustdesk-api-server/routers"
++	"rustdesk-api-server/constant"
+ 	"rustdesk-api-server/utils/flogs"
+ )
+ 
+@@ -18,9 +20,15 @@ func main() {
+ 	flogs.InitLogger()
+ 	// 设置请求内容为复制体
+ 	web.BConfig.CopyRequestBody = true
+-	orm.Debug = true
+-	orm.RunSyncdb("default", false, true)
+-	err := config.InitGlobalInstance("ini", "conf/app.conf")
++	orm.Debug = false
++	orm.RunSyncdb("default", false, false)
++	var appConf string
++	if configEnv := os.Getenv(constant.AppConfEnv); configEnv == "" {
++		appConf = "conf/app.conf"
++	} else {
++		appConf = configEnv
++	}
++	err := config.InitGlobalInstance("ini", appConf)
+ 	if err != nil {
+ 		panic(err)
+ 	}

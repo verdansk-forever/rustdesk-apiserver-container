@@ -1,0 +1,7 @@
+# Beego configuration
+appname = rustdesk-api-server
+HTTPAddr = 0.0.0.0
+httpport = 21114
+sessionon = true
+autorender = false
+copyrequestbody = true
